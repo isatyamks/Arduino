@@ -29,3 +29,32 @@ finally:
     pwm_b.stop()
     GPIO.cleanup()
     print("Motor B stopped.")
+
+
+
+
+
+?????????????????????????????
+
+
+
+
+import time
+
+def rotate_left(pwm_a, pwm_b, dir_a_pin, dir_b_pin):
+    # Motor A backward, Motor B forward with fine-tuned duty cycle
+    GPIO.output(dir_a_pin, GPIO.LOW)  # Motor A backward
+    GPIO.output(dir_b_pin, GPIO.HIGH)  # Motor B forward
+    pwm_a.ChangeDutyCycle(40)  # Adjust duty cycle if needed
+    pwm_b.ChangeDutyCycle(40)
+    time.sleep(0.1)  # Optional delay for smoother response
+    print("Rotate Left")
+
+def rotate_right(pwm_a, pwm_b, dir_a_pin, dir_b_pin):
+    # Motor A forward, Motor B backward with fine-tuned duty cycle
+    GPIO.output(dir_a_pin, GPIO.HIGH)  # Motor A forward
+    GPIO.output(dir_b_pin, GPIO.LOW)  # Motor B backward
+    pwm_a.ChangeDutyCycle(40)  # Adjust duty cycle if needed
+    pwm_b.ChangeDutyCycle(40)
+    time.sleep(0.1)  # Optional delay for smoother response
+    print("Rotate Right")
