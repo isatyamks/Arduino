@@ -16,6 +16,7 @@ GPIO.setup(DIR2_PIN, GPIO.OUT)
 GPIO.setup(PWM2_PIN, GPIO.OUT)
 
 # Initialize PWM with a frequency of 100 Hz
+
 pwm_a = GPIO.PWM(PWM1_PIN, 100)
 pwm_b = GPIO.PWM(PWM2_PIN, 100)
 pwm_a.start(0)
