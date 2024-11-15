@@ -1,13 +1,12 @@
 import RPi.GPIO as GPIO
 import curses
-import cv2
 import subprocess
 import numpy as np
+import cv2
 from threading import Thread
 
-# Define motor control functions
+# Motor control functions
 def forward(pwm_a, pwm_b, dir_a_pin, dir_b_pin):
-    # Set Motor A and Motor B to forward direction
     GPIO.output(dir_a_pin, GPIO.HIGH)
     GPIO.output(dir_b_pin, GPIO.HIGH)
     pwm_a.ChangeDutyCycle(50)
@@ -15,7 +14,6 @@ def forward(pwm_a, pwm_b, dir_a_pin, dir_b_pin):
     print("Forward")
 
 def backward(pwm_a, pwm_b, dir_a_pin, dir_b_pin):
-    # Set Motor A and Motor B to backward direction
     GPIO.output(dir_a_pin, GPIO.LOW)
     GPIO.output(dir_b_pin, GPIO.LOW)
     pwm_a.ChangeDutyCycle(50)
@@ -23,7 +21,6 @@ def backward(pwm_a, pwm_b, dir_a_pin, dir_b_pin):
     print("Backward")
 
 def rotate_left(pwm_a, pwm_b, dir_a_pin, dir_b_pin):
-    # Motor A backward, Motor B forward
     GPIO.output(dir_a_pin, GPIO.LOW)
     GPIO.output(dir_b_pin, GPIO.HIGH)
     pwm_a.ChangeDutyCycle(50)
@@ -31,28 +28,11 @@ def rotate_left(pwm_a, pwm_b, dir_a_pin, dir_b_pin):
     print("Rotate Left")
 
 def rotate_right(pwm_a, pwm_b, dir_a_pin, dir_b_pin):
-    # Motor A forward, Motor B backward
     GPIO.output(dir_a_pin, GPIO.HIGH)
     GPIO.output(dir_b_pin, GPIO.LOW)
     pwm_a.ChangeDutyCycle(50)
     pwm_b.ChangeDutyCycle(50)
     print("Rotate Right")
-
-def turn_left(pwm_a, pwm_b, dir_a_pin, dir_b_pin):
-    # Motor A forward slower, Motor B forward faster
-    GPIO.output(dir_a_pin, GPIO.HIGH)
-    GPIO.output(dir_b_pin, GPIO.HIGH)
-    pwm_a.ChangeDutyCycle(25)
-    pwm_b.ChangeDutyCycle(75)
-    print("Turn Left")
-
-def turn_right(pwm_a, pwm_b, dir_a_pin, dir_b_pin):
-    # Motor A forward faster, Motor B forward slower
-    GPIO.output(dir_a_pin, GPIO.HIGH)
-    GPIO.output(dir_b_pin, GPIO.HIGH)
-    pwm_a.ChangeDutyCycle(75)
-    pwm_b.ChangeDutyCycle(25)
-    print("Turn Right")
 
 def stop(pwm_a, pwm_b):
     pwm_a.ChangeDutyCycle(0)
@@ -65,7 +45,7 @@ def cleanup(pwm_a, pwm_b):
     pwm_b.stop()
     GPIO.cleanup()
 
-# Function to start live camera feed (unchanged)
+# Function to start live camera feed
 def start_camera_feed():
     camera_process = subprocess.Popen(
         ['libcamera-vid', '--width', '640', '--height', '480', '-t', '0', '--inline', '--output', '-'],
@@ -92,7 +72,6 @@ def run_camera():
     return camera_thread
 
 def main(stdscr, dir_a_pin, pwm_a_pin, dir_b_pin, pwm_b_pin):
-    # Initialize GPIO settings
     GPIO.setwarnings(False)
     GPIO.setmode(GPIO.BCM)
     GPIO.setup(dir_a_pin, GPIO.OUT)
@@ -100,9 +79,8 @@ def main(stdscr, dir_a_pin, pwm_a_pin, dir_b_pin, pwm_b_pin):
     GPIO.setup(dir_b_pin, GPIO.OUT)
     GPIO.setup(pwm_b_pin, GPIO.OUT)
 
-    # Create PWM objects
-    pwm_a = GPIO.PWM(pwm_a_pin, 100)  # Frequency set to 100 Hz
-    pwm_b = GPIO.PWM(pwm_b_pin, 100)  # Frequency set to 100 Hz
+    pwm_a = GPIO.PWM(pwm_a_pin, 100)  
+    pwm_b = GPIO.PWM(pwm_b_pin, 100)  
 
     pwm_a.start(0)
     pwm_b.start(0)
@@ -120,20 +98,15 @@ def main(stdscr, dir_a_pin, pwm_a_pin, dir_b_pin, pwm_b_pin):
             key = stdscr.getch()
             if key == ord('q'):
                 break
-            elif key == curses.KEY_UP:
+            stop(pwm_a, pwm_b)  # Stop motors before each command
+            if key == curses.KEY_UP:
                 forward(pwm_a, pwm_b, dir_a_pin, dir_b_pin)
             elif key == curses.KEY_DOWN:
                 backward(pwm_a, pwm_b, dir_a_pin, dir_b_pin)
-            elif key == curses.KEY_LEFT:
-                turn_left(pwm_a, pwm_b, dir_a_pin, dir_b_pin)
             elif key == curses.KEY_RIGHT:
-                turn_right(pwm_a, pwm_b, dir_a_pin, dir_b_pin)
-            elif key == ord('a'):
                 rotate_left(pwm_a, pwm_b, dir_a_pin, dir_b_pin)
-            elif key == ord('d'):
+            elif key == curses.KEY_LEFT:
                 rotate_right(pwm_a, pwm_b, dir_a_pin, dir_b_pin)
-            elif key == ord(' '):
-                stop(pwm_a, pwm_b)
     finally:
         cleanup(pwm_a, pwm_b)
         curses.endwin()
@@ -141,14 +114,10 @@ def main(stdscr, dir_a_pin, pwm_a_pin, dir_b_pin, pwm_b_pin):
 
 # Define GPIO pins for Cytron MD10C
 DIR_A_PIN = 17  # Direction for Motor A
-PMWA_PIN = 22   # PWM for Motor A
+PWM_A_PIN = 22  # PWM for Motor A
 
 DIR_B_PIN = 23  # Direction for Motor B
-PMWB_PIN = 25   # PWM for Motor B
+PWM_B_PIN = 25  # PWM for Motor B
 
 # Run main function with GPIO pins
-curses.wrapper(main, DIR_A_PIN, PMWA_PIN, DIR_B_PIN, PMWB_PIN)
-
-
-
-
+curses.wrapper(main, DIR_A_PIN, PWM_A_PIN, DIR_B_PIN, PWM_B_PIN)
